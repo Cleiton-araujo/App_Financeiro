@@ -1,0 +1,22 @@
+Node.js
+PostgreSQL
+Insomnia
+
+API REST
+
+- Como os recursos devem ser acessados via URL
+-Os metodos HTTP (GET, POST, PUT, DELETE)
+- formato de dados JSON
+
+Criar a pasta
+
+* Cria o arquivo Package.json
+npm init -y
+
+# Instalar dependencias 
+
+express: Framework HTTP
+nodemom: Reinicir a aplicação quando for feito alteração
+
+npm install express nodemom
+

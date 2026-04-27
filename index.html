@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Financeiro - Controle de Entradas e Saídas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Cards de Resumo */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .card-entradas .card-icon { background: #e8f5e9; }
+        .card-saidas .card-icon { background: #ffebee; }
+        .card-saldo .card-icon { background: #e3f2fd; }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .card-entradas .card-value { color: #2e7d32; }
+        .card-saidas .card-value { color: #c62828; }
+        .card-saldo .card-value { color: #1565c0; }
+
+        /* Área Principal */
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .toolbar h2 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fb8c00 0%, #ef6c00 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        /* Tabela */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-entrada {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-saida {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .valor-entrada {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .valor-saida {
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Estado Vazio */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .toast.success { border-left-color: #43a047; }
+        .toast.error { border-left-color: #e53935; }
+        .toast.info { border-left-color: #1e88e5; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 App Financeiro</h1>
+            <p>Controle suas entradas e saídas de forma simples e elegante</p>
+        </header>
+
+        <!-- Cards de Resumo -->
+        <div class="cards">
+            <div class="card card-entradas">
+                <div class="card-header">
+                    <span class="card-title">Total de Entradas</span>
+                    <div class="card-icon">📈</div>
+                </div>
+                <div class="card-value" id="total-entradas">R$ 0,00</div>
+            </div>
+            <div class="card card-saidas">
+                <div class="card-header">
+                    <span class="card-title">Total de Saídas</span>
+                    <div class="card-icon">📉</div>
+                </div>
+                <div class="card-value" id="total-saidas">R$ 0,00</div>
+            </div>
+            <div class="card card-saldo">
+                <div class="card-header">
+                    <span class="card-title">Saldo</span>
+                    <div class="card-icon">💵</div>
+                </div>
+                <div class="card-value" id="total-saldo">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="main-content">
+            <div class="toolbar">
+                <h2>📋 Lançamentos</h2>
+                <button class="btn btn-primary" onclick="abrirModal()">
+                    <span>+</span> Novo Lançamento
+                </button>
+            </div>
+            <div class="table-container" id="tabela-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Novo Lançamento</h3>
+                <button class="btn-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="registro-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="data">Data</label>
+                        <input type="date" id="data" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo">Tipo</label>
+                        <select id="tipo" class="form-control" required>
+                            <option value="entrada">Entrada</option>
+                            <option value="saida">Saída</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" class="form-control" placeholder="Ex: Pagamento de cliente" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="formaPagamento">Forma de Pagamento</label>
+                        <select id="formaPagamento" class="form-control" required>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="PIX">PIX</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="valor">Valor (R$)</label>
+                        <input type="number" id="valor" class="form-control" step="0.01" placeholder="0,00" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-success" onclick="salvarRegistro()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/financeiro';
+        let registros = [];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarRegistros();
+            document.getElementById('data').valueAsDate = new Date();
+        });
+
+        // Carregar registros
+        async function carregarRegistros() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Erro ao carregar dados');
+                registros = await response.json();
+                renderizarTabela();
+                atualizarCards();
+            } catch (error) {
+                mostrarToast('error', 'Erro', error.message);
+                renderizarTabelaVazia();
+            }
+        }
+
+        // Renderizar tabela
+        function renderizarTabela() {
+            const container = document.getElementById('tabela-container');
+            
+            if (registros.length === 0) {
+                renderizarTabelaVazia();
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Forma de Pagamento</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${registros.map(r => `
+                            <tr>
+                                <td>${formatarData(r.data)}</td>
+                                <td>${r.descricao}</td>
+                                <td>${r.formaPagamento}</td>
+                                <td><span class="badge badge-${r.tipo}">${r.tipo === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
+                                <td class="valor-${r.tipo}">${formatarMoeda(r.valor)}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-icon btn-edit" onclick="editarRegistro(${r.id})" title="Editar">✏️</button>
+                                        <button class="btn-icon btn-delete" onclick="confirmarExclusao(${r.id})" title="Excluir">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderizarTabelaVazia() {
+            document.getElementById('tabela-container').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3>Nenhum lançamento encontrado</h3>
+                    <p>Clique em "Novo Lançamento" para começar</p>
+                </div>
+            `;
+        }
+
+        // Atualizar cards
+        function atualizarCards() {
+            const entradas = registros
+                .filter(r => r.tipo === 'entrada')
+                .reduce((acc, r) => acc + parseFloat(r.valor), 0);
+            
+            const saidas = registros
+                .filter(r => r.tipo === 'saida')
+                .reduce((acc, r) => acc + parseFloat(r.valor), 0);
+            
+            const saldo = entradas - saidas;
+
+            document.getElementById('total-entradas').textContent = formatarMoeda(entradas);
+            document.getElementById('total-saidas').textContent = formatarMoeda(saidas);
+            document.getElementById('total-saldo').textContent = formatarMoeda(saldo);
+        }
+
+        // Modal
+        function abrirModal(id = null) {
+            const modal = document.getElementById('modal');
+            const titulo = document.getElementById('modal-titulo');
+            
+            if (id) {
+                const registro = registros.find(r => r.id === id);
+                if (!registro) return;
+                
+                titulo.textContent = 'Editar Lançamento';
+                document.getElementById('registro-id').value = registro.id;
+                document.getElementById('data').value = registro.data ? registro.data.split('T')[0] : '';
+                document.getElementById('descricao').value = registro.descricao;
+                document.getElementById('formaPagamento').value = registro.formaPagamento;
+                document.getElementById('valor').value = registro.valor;
+                document.getElementById('tipo').value = registro.tipo;
+            } else {
+                titulo.textContent = 'Novo Lançamento';
+                document.getElementById('registro-id').value = '';
+                document.getElementById('data').valueAsDate = new Date();
+                document.getElementById('descricao').value = '';
+                document.getElementById('formaPagamento').value = 'Dinheiro';
+                document.getElementById('valor').value = '';
+                document.getElementById('tipo').value = 'entrada';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Salvar registro
+        async function salvarRegistro() {
+            const id = document.getElementById('registro-id').value;
+            const data = document.getElementById('data').value;
+            const descricao = document.getElementById('descricao').value;
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const tipo = document.getElementById('tipo').value;
+
+            if (!data || !descricao || !formaPagamento || isNaN(valor) || valor <= 0) {
+                mostrarToast('error', 'Erro', 'Preencha todos os campos corretamente');
+                return;
+            }
+
+            const body = { data, descricao, formaPagamento, valor, tipo };
+
+            try {
+                const url = id ? `${API_URL}/${id}` : API_URL;
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const erro = await response.json();
+                    throw new Error(erro.erro || 'Erro ao salvar');
+                }
+
+                mostrarToast('success', 'Sucesso', id ? 'Lançamento atualizado!' : 'Lançamento criado!');
+                fecharModal();
+                await carregarRegistros();
+            } catch (error) {
+                mostrarToast('error', 'Erro', error.message);
+            }
+        }
+
+        // Editar
+        function editarRegistro(id) {
+            abrirModal(id);
+        }
+
+        // Confirmar exclusão
+        function confirmarExclusao(id) {
+            if (confirm('Tem certeza que deseja excluir este lançamento?')) {
+                excluirRegistro(id);
+            }
+        }
+
+        // Excluir
+        async function excluirRegistro(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                
+                if (!response.ok) {
+                    const erro = await response.json();
+                    throw new Error(erro.erro || 'Erro ao excluir');
+                }
+
+                mostrarToast('success', 'Sucesso', 'Lançamento excluído!');
+                await carregarRegistros();
+            } catch (error) {
+                mostrarToast('error', 'Erro', error.message);
+            }
+        }
+
+        // Toast
+        function mostrarToast(tipo, titulo, mensagem) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            
+            const icones = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icones[tipo]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${titulo}</div>
+                    <div class="toast-message">${mensagem}</div>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Utilitários
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        function formatarData(dataString) {
+            if (!dataString) return '-';
+            const data = new Date(dataString);
+            return data.toLocaleDateString('pt-BR');
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') fecharModal();
+        });
+    </script>
+</body>
+</html>
+

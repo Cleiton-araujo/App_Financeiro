@@ -48,7 +48,7 @@ git push -u origin main
    - **Region**: Mesma do banco de dados
    - **Branch**: `main`
    - **Runtime**: `Node`
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install && npm --prefix frontend install && npm run build`
    - **Start Command**: `node app.js`
    - **Plan**: **Free**
 5. Em **Environment Variables**, adicione:

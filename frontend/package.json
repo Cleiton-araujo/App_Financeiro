@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "appfinanceiro": "file:..",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^3.8.1"
